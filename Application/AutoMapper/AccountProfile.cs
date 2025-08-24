@@ -15,9 +15,6 @@ namespace Application.AutoMapper
         {
             CreateMap<Account, GetAccountDto>();
             CreateMap<CreateAccountDto, Account>();
-            CreateMap<UpdateAccountDto, Account>()
-                .ForAllMembers(opt =>
-                    opt.Condition((src, dest, srcMember) => srcMember != null));// only map if source member is not null
         }
     }
 }

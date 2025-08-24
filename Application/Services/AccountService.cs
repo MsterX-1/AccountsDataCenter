@@ -71,6 +71,9 @@ namespace Application.Services
         }
         public async Task AddAccountAsync(CreateAccountDto createAccountDto)
         {
+            var user = await _userRepo.GetByIdAsync(createAccountDto.UserId);
+            if (user == null)
+                throw new ArgumentException($"Invalid User ID: {createAccountDto.UserId}");
             var account = _mapper.Map<Account>(createAccountDto);
             await _accountRepo.AddAsync(account);
         }
@@ -81,17 +84,30 @@ namespace Application.Services
             if (existingAccount == null)
                 throw new KeyNotFoundException($"No account found with ID: {id}");
 
-            if (updateAccountDto.UserId != null) // If UserId is being updated, validate the new UserId exists
+            // Validate new user if provided
+            if (updateAccountDto.UserId.HasValue)
             {
-                var user = await _userRepo.GetByIdAsync((int)updateAccountDto.UserId);
+                var user = await _userRepo.GetByIdAsync(updateAccountDto.UserId.Value);
                 if (user == null)
                     throw new ArgumentException($"Invalid User ID: {updateAccountDto.UserId}");
+                existingAccount.UserId = updateAccountDto.UserId.Value;
             }
 
-            _mapper.Map(updateAccountDto, existingAccount);
+            if (!string.IsNullOrEmpty(updateAccountDto.SellerName))
+                existingAccount.SellerName = updateAccountDto.SellerName;
+
+            if (updateAccountDto.Price.HasValue)
+                existingAccount.Price = updateAccountDto.Price.Value;
 
             await _accountRepo.UpdateAsync(existingAccount);
-
         }
+        public async Task DeleteAccountAsync(int id)
+        {
+            var existingAccount = await _accountRepo.GetByIdAsync(id);
+            if (existingAccount == null)
+                throw new KeyNotFoundException($"No account found with ID: {id}");
+            await _accountRepo.DeleteAsync(id);
+        }
+
     }
 }

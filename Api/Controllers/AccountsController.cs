@@ -60,13 +60,20 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                await _accountService.AddAccountAsync(dto);
+                var createdAccount = await _accountService.GetAccountsBySellerNameAsync(dto.SellerName);
+                return Ok(createdAccount);
             }
-            await _accountService.AddAccountAsync(dto);
-            var createdAccount = await _accountService.GetAccountsBySellerNameAsync(dto.SellerName);
-            return Ok(createdAccount); 
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         #endregion
         #region Put Methods
@@ -90,6 +97,21 @@ namespace Api.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+        #endregion
+        #region Delete Methods
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAccount(int id)
+        {
+            try
+            {
+                await _accountService.DeleteAccountAsync(id);
+                return Ok("Deleted Successfuly");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
         }
         #endregion

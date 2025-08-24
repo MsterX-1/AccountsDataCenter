@@ -10,8 +10,8 @@ namespace Application.DTOs.AccountDto
 {
     public class UpdateAccountDto
     {
-        public string? SellerName { get; set; }=null;  
-        public decimal? Price { get; set; }= null;    // nullable
-        public int? UserId { get; set; } = null;      // nullable
+        public string? SellerName { get; set; } 
+        public decimal? Price { get; set; }   // nullable
+        public int? UserId { get; set; }      // nullable
     }
 }
