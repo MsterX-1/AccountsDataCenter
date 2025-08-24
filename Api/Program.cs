@@ -18,8 +18,10 @@ namespace Api
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddScoped<UserService>();
-           // builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<AccountService>();
+            // builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
 
 

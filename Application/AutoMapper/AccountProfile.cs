@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 
 namespace Application.AutoMapper
 {
-    public class AccountProfile:Profile
+    public class AccountProfile : Profile
     {
         public AccountProfile()
         {
             CreateMap<Account, GetAccountDto>();
+            CreateMap<CreateAccountDto, Account>();
         }
     }
 }
