@@ -2,6 +2,7 @@
 using Application.DTOs.ItemDto;
 using Application.DTOs.RoleDto;
 using Application.DTOs.UserDto;
+using Application.Extentions.UserExtentions;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -39,13 +40,7 @@ namespace Application.Services.AuthService
             if (await _userManager.FindByEmailAsync(newUser.Email) != null)
                 return new AuthDto { Messege = "Email is already registered" };
 
-            var user = new User
-            {
-                UserName = newUser.UserName,
-                FristName = newUser.FristName,
-                LastName = newUser.LastName,
-                Email = newUser.Email
-            };
+            var user = newUser.ConvertToUser();
             var result = await _userManager.CreateAsync(user, newUser.Password);
 
             if (!result.Succeeded)
