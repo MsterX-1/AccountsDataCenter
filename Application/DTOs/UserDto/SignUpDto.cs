@@ -1,21 +1,23 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Models
+namespace Application.DTOs.ItemDto
 {
-    public class User : IdentityUser
+    public class SignUpDto
     {
+        [Required,MaxLength(100)]
+        public string UserName { get; set; }
+        [Required, MaxLength(100)]
+        public string Email { get; set; }
         [Required, MaxLength(100)]
         public string FristName { get; set; }
         [Required, MaxLength(100)]
         public string LastName { get; set; }
-        public byte[]? ProfilePicture { get; set; }
-        public ICollection<Account> Accounts { get; set; }//navigation property
-
+        [Required]
+        public string Password { get; set; }
     }
 }

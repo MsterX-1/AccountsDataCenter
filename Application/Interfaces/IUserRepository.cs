@@ -9,8 +9,7 @@ namespace Application.Interfaces
 {
     public interface IUserRepository: IGenericRepository<User>
     {
-        // interface feh kol 7aga fel generic repository w kaman feh 7agat mo5tasa bel item bas
-        Task<User>GetUserByUserNameAsync(string name);
+        // interface feh kol 7aga fel generic repository w kaman feh 7agat mo5tasa bel User bas
         Task<IEnumerable<User>> GetUsersWithAccountsAsync();
     }
 }

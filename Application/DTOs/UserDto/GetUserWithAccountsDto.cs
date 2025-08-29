@@ -11,11 +11,10 @@ namespace Application.DTOs.UserDto
     public class GetUserWithAccountsDto
     {
         [JsonPropertyName("User ID")]
-        public int Id { get; set; }
+        public string Id { get; set; }
         [JsonPropertyName("User Name")]
         public string UserName { get; set; }
-        [JsonPropertyName("Password")]
-        public string Password { get; set; }
+
         [JsonPropertyName("Accounts")]
         public List<GetAccountDto> Accounts { get; set; }
     }

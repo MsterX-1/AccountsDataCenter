@@ -9,7 +9,7 @@ namespace Application.Interfaces
 {
     public  interface IAccountRepository: IGenericRepository<Account>
     {
-        Task<IEnumerable<Account>> GetAccountsByUserIdAsync(int userId);
+        Task<IEnumerable<Account>> GetAccountsByUserIdAsync(string userId);
         Task<IEnumerable<Account>> GetAccountsBySellerName(string sellerName);
     }
 }

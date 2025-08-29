@@ -12,6 +12,6 @@ namespace Application.DTOs.AccountDto
     {
         public string? SellerName { get; set; } 
         public decimal? Price { get; set; }   // nullable
-        public int? UserId { get; set; }      // nullable
+        public string? UserId { get; set; }      // nullable
     }
 }

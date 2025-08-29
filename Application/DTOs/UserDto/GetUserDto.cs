@@ -11,10 +11,14 @@ namespace Application.DTOs.ItemDto
     public class GetUserDto
     {
         [JsonPropertyName("User ID")]
-        public int Id { get; set; }
+        public string Id { get; set; }
         [JsonPropertyName("User Name")]
         public string UserName { get; set; }
-        [JsonPropertyName("Password")]
-        public string Password { get; set; }
+        [JsonPropertyName("First Name")]
+        public string FirstName { get; set; }
+        [JsonPropertyName("Last Name")]
+        public string LastName { get; set; }
+        [JsonPropertyName("Email")]
+        public string Email { get; set; }
     }
 }

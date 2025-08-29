@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.AccountDto;
 using Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountsController : ControllerBase
     {
         private readonly AccountService _accountService;
@@ -14,81 +16,101 @@ namespace Api.Controllers
         {
             _accountService = accountService;
         }
+
         #region Get Methods
         [HttpGet]
         public async Task<IActionResult> GetAllAccounts()
         {
-            var accountDto = await _accountService.GetAllAccountsAsync();
-            if (accountDto == null)
+            try
             {
-                return NotFound("No account found.");
+                var accounts = await _accountService.GetAllAccountsAsync();
+                return Ok(accounts);
             }
-            return Ok(accountDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAccountById(int id)
         {
-            var accountDto = await _accountService.GetAccountByIdAsync(id);
-            if (accountDto == null)
+            try
             {
-                return NotFound($"No account found with ID: {id}");
+                var account = await _accountService.GetAccountByIdAsync(id);
+                return Ok(account);
             }
-            return Ok(accountDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
+
         [HttpGet("ByUserId/{userId}")]
-        public async Task<IActionResult> GetAccountsByUserId(int userId)
+        public async Task<IActionResult> GetAccountsByUserId(string userId)
         {
-            var accountDto = await _accountService.GetAccountsByUserIdAsync(userId);
-            if (accountDto == null)
+            try
             {
-                return NotFound($"No accounts found for User ID: {userId}");
+                var accounts = await _accountService.GetAccountsByUserIdAsync(userId);
+                return Ok(accounts);
             }
-            return Ok(accountDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
+
         [HttpGet("BySellerName/{sellerName}")]
         public async Task<IActionResult> GetAccountsBySellerName(string sellerName)
         {
-            var accountDto = await _accountService.GetAccountsBySellerNameAsync(sellerName);
-            if (accountDto == null)
+            try
             {
-                return NotFound($"No accounts found for Seller Name: {sellerName}");
+                var accounts = await _accountService.GetAccountsBySellerNameAsync(sellerName);
+                return Ok(accounts);
             }
-            return Ok(accountDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
         #endregion
+
         #region Post Methods
         [HttpPost]
         public async Task<IActionResult> CreateAccount([FromBody] CreateAccountDto dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
                 await _accountService.AddAccountAsync(dto);
-                var createdAccount = await _accountService.GetAccountsBySellerNameAsync(dto.SellerName);
-                return Ok(createdAccount);
+                // optionally return the created account
+                var createdAccounts = await _accountService.GetAccountsBySellerNameAsync(dto.SellerName);
+                return Ok(createdAccounts);
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
         #endregion
+
         #region Put Methods
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateAccountDto dto)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             try
             {
-               await _accountService.UpdateAccountAsync(id, dto);
-                return Ok("Updated Successfuly");
+                await _accountService.UpdateAccountAsync(id, dto);
+                return Ok("Updated Successfully");
             }
             catch (KeyNotFoundException ex)
             {
@@ -98,8 +120,13 @@ namespace Api.Controllers
             {
                 return BadRequest(ex.Message);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
         #endregion
+
         #region Delete Methods
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAccount(int id)
@@ -107,11 +134,15 @@ namespace Api.Controllers
             try
             {
                 await _accountService.DeleteAccountAsync(id);
-                return Ok("Deleted Successfuly");
+                return Ok("Deleted Successfully");
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
         #endregion

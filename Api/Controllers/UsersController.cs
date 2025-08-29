@@ -1,12 +1,13 @@
-﻿using Application.DTOs.ItemDto;
+﻿using Application.DTOs.UserDto;
 using Application.Services;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
@@ -17,93 +18,84 @@ namespace Api.Controllers
         }
 
         #region Get Methods
-        [HttpGet]
+
+        [HttpGet("AllUsers")]
         public async Task<IActionResult> GetAllUsers()
         {
-            var userDto = await _userService.GetAllUsersAsync();
-            if(userDto == null)
+            try
             {
-                return NotFound("No user found.");
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(users);
             }
-            return Ok(userDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
+
         [HttpGet("WithAccounts")]
         public async Task<IActionResult> GetAllUsersWithAccounts()
         {
-            var userWithAccDto = await _userService.GetAllUsersWithAccounts();
-            if(userWithAccDto == null)
+            try
             {
-                return NotFound("No user found.");
+                var usersWithAccounts = await _userService.GetAllUsersWithAccounts();
+                return Ok(usersWithAccounts);
             }
-            return Ok(userWithAccDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
+
+        [HttpGet("ByUserId/{id}")]
+        public async Task<IActionResult> GetUserById(string id)
         {
-            var userDto = await _userService.GetUserByIdAsync(id);
-            if(userDto == null)
+            try
             {
-                return NotFound($"User with ID {id} not found.");
+                var user = await _userService.GetUserByIdAsync(id);
+                return Ok(user);
             }
-            return Ok(userDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
+
         [HttpGet("ByUserName/{userName}")]
         public async Task<IActionResult> GetUserByUserName(string userName)
         {
-            var userDto = await _userService.GetUserByUserNameAsync(userName);
-            if(userDto == null)
+            try
             {
-                return NotFound($"User with User Name {userName} not found.");
+                var user = await _userService.GetUserByUserNameAsync(userName);
+                return Ok(user);
             }
-            return Ok(userDto);
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
-        #endregion
 
-        #region Post Methods
-        [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto userDto)
-        {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            await _userService.AddUserAsync(userDto);
-            var createdUser = await _userService.GetUserByUserNameAsync(userDto.UserName);
-            return Ok(createdUser);
-        }
-        #endregion
-
-        #region Put Methods
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto userDto)
-        {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var existingUser = await _userService.GetUserByIdAsync(id);
-            if(existingUser == null)
-            {
-                return NotFound($"User with ID {id} not found.");
-            }
-            await _userService.UpdateUserAsync(id, userDto);
-            var updatedUser = await _userService.GetUserByIdAsync(id);
-            return Ok(updatedUser);
-        }
         #endregion
 
         #region Delete Methods
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(string id)
         {
-            var existingUser = await _userService.GetUserByIdAsync(id);
-            if(existingUser == null)
+            try
             {
-                return NotFound($"User with ID {id} not found.");
+                var result = await _userService.DeleteUserAsync(id);
+                if (!result)
+                    return NotFound($"User with ID {id} not found.");
+
+                return Ok("Deleted Successfully");
             }
-            await _userService.DeleteUserAsync(id);
-            return Ok("Deleted Successfully");
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+
         #endregion
     }
 }

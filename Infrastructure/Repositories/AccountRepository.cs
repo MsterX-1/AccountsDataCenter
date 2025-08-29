@@ -23,9 +23,10 @@ namespace Infrastructure.Repositories
             return await _db.Accounts.Where(a => a.SellerName.ToLower() == sellerName.ToLower()).ToListAsync();
         }
 
-        public async Task<IEnumerable<Account>> GetAccountsByUserIdAsync(int userId)
+        public async Task<IEnumerable<Account>> GetAccountsByUserIdAsync(string userId)
         {
             return await _db.Accounts.Where(a => a.UserId == userId).ToListAsync();
+            
         }
     }
 }

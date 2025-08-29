@@ -11,11 +11,13 @@ namespace Application.DTOs.AccountDto
     public class CreateAccountDto
     {
         [JsonPropertyName("Seller Name")]
-        [MaxLength(50)]
-        public required string SellerName { get; set; }
+        [Required,MaxLength(100)]
+        public string SellerName { get; set; }
         [JsonPropertyName("Price")]
-        public required decimal Price { get; set; }
+        [Required]
+        public decimal Price { get; set; }
         [JsonPropertyName("User Id")]
-        public required int UserId { get; set; }
+        [Required]
+        public string UserId { get; set; }
     }
 }
