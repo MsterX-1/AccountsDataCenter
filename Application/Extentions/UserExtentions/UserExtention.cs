@@ -12,7 +12,7 @@ namespace Application.Extentions.UserExtentions
 {
     public static class UserExtention
     {
-        // Extension methods for User-related functionalities can be added here.
+        //  Extension methods for User-related functionalities can be added here.
         public static IEnumerable<GetUserDto> ConvertToGetDtoList(this IEnumerable<User> users)
         {
             return users.Select(user => new GetUserDto
