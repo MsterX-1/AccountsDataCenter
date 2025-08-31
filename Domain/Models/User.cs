@@ -16,6 +16,7 @@ namespace Domain.Models
         public string LastName { get; set; }
         public byte[]? ProfilePicture { get; set; }
         public ICollection<Account> Accounts { get; set; }//navigation property
+        public ICollection<RefreshToken> RefreshTokens { get; set; }//navigation property
 
     }
 }

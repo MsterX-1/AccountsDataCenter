@@ -18,5 +18,9 @@ namespace Application.Services.AuthService
         Task<AuthDto> GetTokenAsync(LoginDto loginDto);
         //Add Role
         Task<string> AddRoleAsync(AddRoleDto addRoleDto);
+        //Refresh Token
+        Task<AuthDto> RefreshTokenAsync(string Token);
+        //Revoke Token
+        Task<bool> RevokeTokenAsync(string token);
     }
 }

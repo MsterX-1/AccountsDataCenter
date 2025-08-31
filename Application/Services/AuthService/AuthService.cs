@@ -14,6 +14,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.AuthService
 {
@@ -62,30 +64,45 @@ namespace Application.Services.AuthService
                 Email = user.Email,
                 Roles = new List<string> { "User" },
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                ExpiresOn = jwtSecurityToken.ValidTo
+                JWTExpiresOn = jwtSecurityToken.ValidTo
             };
         }
 
         // When Login
         public async Task<AuthDto> GetTokenAsync(LoginDto loginDto)
         {
-            var user = await _userManager.FindByNameAsync(loginDto.userName);
+            var authDto = new AuthDto();
+            var user = await _userManager.Users
+                .Include(x => x.RefreshTokens)
+                .FirstOrDefaultAsync(x => x.UserName == loginDto.userName);
+
             if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.password))
                 return new AuthDto { Messege = "UserName or Password is Incorrect !" };
 
             var jwtSecurityToken = await CreateJwtToken(user);
 
             var rolesList = await _userManager.GetRolesAsync(user);
+            authDto.IsAuthenticated = true;
+            authDto.UserName = user.UserName;
+            authDto.Email = user.Email;
+            authDto.Roles = rolesList.ToList();
+            authDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            authDto.JWTExpiresOn = jwtSecurityToken.ValidTo;
 
-            return new AuthDto
+            if (user.RefreshTokens.Any(t => t.IsActive))
             {
-                IsAuthenticated = true,
-                UserName = user.UserName,
-                Email = user.Email,
-                Roles = rolesList.ToList(),
-                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                ExpiresOn = jwtSecurityToken.ValidTo
-            };
+                var activeRefreshToken = user.RefreshTokens.FirstOrDefault(t => t.IsActive);
+                authDto.RefreshToken = activeRefreshToken.Token;
+                authDto.RefreshTokenExpiration = activeRefreshToken.Expires;
+            }else
+            {
+                var refreshToken = GenerateRefreshToken();
+                authDto.RefreshToken = refreshToken.Token;
+                authDto.RefreshTokenExpiration = refreshToken.Expires;
+                user.RefreshTokens.Add(refreshToken);
+                await _userManager.UpdateAsync(user);
+            }
+            return authDto;
         }
 
 
@@ -134,6 +151,86 @@ namespace Application.Services.AuthService
             var result = await _userManager.AddToRoleAsync(user, addRoleDto.Role);
 
             return result.Succeeded ? string.Empty : "Failed to add role to user";
+        }
+
+        public async Task<AuthDto> RefreshTokenAsync(string Token)
+        {
+            var authDto = new AuthDto();
+            //get refresh token owner
+            var user = await _userManager.Users
+                .Include(x => x.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == Token));
+
+            if (user == null)
+            {
+                authDto.Messege = "Invalid Token";
+                return authDto;
+            }
+            //get refresh token
+            var refreshToken = user.RefreshTokens.Single(t => t.Token == Token);
+            if (!refreshToken.IsActive)
+            {
+                authDto.Messege = "Inactive Token";
+                return authDto;
+            }
+            //revoke current refresh token
+            refreshToken.Revoked = DateTime.UtcNow;
+
+            //generate new refresh token and save to db
+            var newRefreshToken = GenerateRefreshToken();
+            user.RefreshTokens.Add(newRefreshToken);
+            await _userManager.UpdateAsync(user);
+
+            //generate new jwt
+            var jwtSecurityToken = await CreateJwtToken(user);
+            var rolesList = await _userManager.GetRolesAsync(user);
+            return new AuthDto
+            {
+                IsAuthenticated = true,
+                UserName = user.UserName,
+                Email = user.Email,
+                Roles = rolesList.ToList(),
+                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                JWTExpiresOn = jwtSecurityToken.ValidTo,
+                RefreshToken = newRefreshToken.Token,
+                RefreshTokenExpiration = newRefreshToken.Expires
+            };
+        }
+
+        public async Task<bool> RevokeTokenAsync(string token)
+        {
+            var authDto = new AuthDto();
+            //get refresh token owner
+            var user = await _userManager.Users
+                .Include(x => x.RefreshTokens)
+                .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (user == null)
+                return false;
+
+            //get refresh token
+            var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
+            if (!refreshToken.IsActive)
+                return false;
+
+            //revoke current refresh token
+            refreshToken.Revoked = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+            return true;
+        }
+        private RefreshToken GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var rng = new RNGCryptoServiceProvider();
+            
+                rng.GetBytes(randomNumber);
+                return new RefreshToken
+                {
+                    Token = Convert.ToBase64String(randomNumber),
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    Created = DateTime.UtcNow
+                };
+            
         }
     }
 }
