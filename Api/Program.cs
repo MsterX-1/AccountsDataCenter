@@ -34,7 +34,7 @@ namespace Api
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 
-            // JWT Authentication configuration
+            #region JWT Authentication configuration
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -60,11 +60,14 @@ namespace Api
                     ClockSkew = TimeSpan.Zero // no extra time beyond token expiration
                 };
             });
+            #endregion
 
             builder.Services.AddControllers();
 
             // Swagger/OpenAPI setup
             builder.Services.AddEndpointsApiExplorer();
+
+            #region swagger setting
             builder.Services.AddSwaggerGen(option =>
             {
                 option.SwaggerDoc("v1", new OpenApiInfo()
@@ -104,6 +107,7 @@ namespace Api
                      }
                 });
             });
+            #endregion
 
             var app = builder.Build();
 
